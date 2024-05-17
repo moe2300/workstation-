@@ -1,0 +1,81 @@
+# PowerShell Script for PC Deployment in an Enterprise Environment
+
+# Function to join the computer to the domain
+function Join-Domain {
+    param (
+        [string]$domain,
+        [string]$credential
+    )
+
+    # Join the domain
+    Write-Output "Joining the computer to the domain $domain"
+    Add-Computer -DomainName $domain -Credential $credential -Force -Restart
+}
+
+# Function to install software
+function Install-Software {
+    param (
+        [string[]]$softwareList
+    )
+
+    # Install each software in the list
+    foreach ($software in $softwareList) {
+        Write-Output "Installing $software"
+        Start-Process "msiexec.exe" -ArgumentList "/i $software /qn" -Wait
+    }
+}
+
+# Function to apply group policies
+function Apply-GroupPolicies {
+    # Refresh Group Policy settings
+    Write-Output "Applying Group Policy updates"
+    gpupdate /force
+}
+
+# Function to configure network settings
+function Configure-Network {
+    param (
+        [string]$ipAddress,
+        [string]$subnetMask,
+        [string]$defaultGateway,
+        [string[]]$dnsServers
+    )
+
+    # Set IP address and subnet mask
+    Write-Output "Configuring network settings"
+    New-NetIPAddress -IPAddress $ipAddress -PrefixLength $subnetMask -DefaultGateway $defaultGateway
+
+    # Set DNS servers
+    Set-DnsClientServerAddress -ServerAddresses $dnsServers
+}
+
+# Function to perform system updates
+function Update-System {
+    # Install Windows updates
+    Write-Output "Installing Windows updates"
+    Install-WindowsUpdate -AcceptAll -AutoReboot
+}
+
+# Example usage of the functions
+
+# 1. Join the domain
+$domain = "yourdomain.com"
+$credential = Get-Credential -Message "Please enter your domain credentials"
+Join-Domain -domain $domain -credential $credential
+
+# 2. Install software
+$softwareList = @("C:\Path\To\Software1.msi", "C:\Path\To\Software2.msi")
+Install-Software -softwareList $softwareList
+
+# 3. Apply Group Policies
+Apply-GroupPolicies
+
+# 4. Configure network settings
+$ipAddress = "192.168.1.100"
+$subnetMask = 24
+$defaultGateway = "192.168.1.1"
+$dnsServers = @("8.8.8.8", "8.8.4.4")
+Configure-Network -ipAddress $ipAddress -subnetMask $subnetMask -defaultGateway $defaultGateway -dnsServers $dnsServers
+
+# 5. Update the system
+Update-System
